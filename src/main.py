@@ -1,20 +1,23 @@
 # src/main.py
 
-from face_recognition.face_recognition import recognize_faces
-from object_detection.object_detection import detect_objects
-from depth_sense.depth_sense import sense_depth
-from ocr.ocr import perform_ocr
+from switcher.switcher import ModuleSwitcher
 
 def main():
-    image = "sample_image.jpg"
-    faces = recognize_faces(image)
-    objects = detect_objects(image)
-    depth_data = sense_depth(image)
-    ocr_text = perform_ocr(image)
-    print(f"Faces: {faces}")
-    print(f"Objects: {objects}")
-    print(f"Depth Data: {depth_data}")
-    print(f"OCR Text: {ocr_text}")
+    switcher = ModuleSwitcher()
+
+    while True:
+        print("Enter the module number to run (1: Face Recognition, 2: Object Detection, 3: Depth Sense, 4: OCR, 0: Exit):")
+        try:
+            module_number = int(input())
+            if module_number == 0:
+                print("Exiting...")
+                switcher.switch_module(module_number, None)  # Stop any running thread
+                break
+
+            image = "sample_image.jpg"  # Replace with actual image path or input method
+            switcher.switch_module(module_number, image)
+        except ValueError:
+            print("Please enter a valid number.")
 
 if __name__ == "__main__":
     main()
