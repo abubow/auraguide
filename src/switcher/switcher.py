@@ -1,56 +1,44 @@
 # src/switcher/switcher.py
 
-from threading import Thread, Event
+import threading
 from face_recognition.face_recognition import recognize_faces
 from object_detection.object_detection import detect_objects
 from depth_sense.depth_sense import sense_depth
 from ocr.ocr import perform_ocr
 
-class ModuleSwitcher:
-    def __init__(self):
-        self.current_thread = None
-        self.stop_event = Event()
+active_threads = []
 
-    def run_face_recognition(self, image):
-        result = recognize_faces(image, self.stop_event)
-        if result:
-            print(f"Face Recognition Result: {result}")
+def run_face_recognition(cap, lock, stop_event):
+    recognize_faces(cap, lock, stop_event)
 
-    def run_object_detection(self, image):
-        result = detect_objects(image, self.stop_event)
-        if result:
-            print(f"Object Detection Result: {result}")
+def run_object_detection(cap, lock, stop_event):
+    detect_objects(cap, lock, stop_event)
 
-    def run_depth_sense(self, image):
-        result = sense_depth(image, self.stop_event)
-        if result:
-            print(f"Depth Sense Result: {result}")
+def run_depth_sense(cap, lock, stop_event):
+    sense_depth(cap, lock, stop_event)
 
-    def run_ocr(self, image):
-        result = perform_ocr(image, self.stop_event)
-        if result:
-            print(f"OCR Result: {result}")
+def run_ocr(cap, lock, stop_event):
+    perform_ocr(cap, lock, stop_event)
 
-    def switch_module(self, module_number, image):
-        # Stop the current thread if it's running
-        if self.current_thread and self.current_thread.is_alive():
-            self.stop_event.set()
-            self.current_thread.join()
+def switch_module(module_number, cap, lock, stop_event):
+    global active_threads
+    stop_event.set()
 
-        # Clear the stop event for the new thread
-        self.stop_event.clear()
+    for thread in active_threads:
+        thread.join()
 
-        if module_number == 1:
-            self.current_thread = Thread(target=self.run_face_recognition, args=(image,))
-        elif module_number == 2:
-            self.current_thread = Thread(target=self.run_object_detection, args=(image,))
-        elif module_number == 3:
-            self.current_thread = Thread(target=self.run_depth_sense, args=(image,))
-        elif module_number == 4:
-            self.current_thread = Thread(target=self.run_ocr, args=(image,))
-        else:
-            print("Invalid module number.")
-            return
+    stop_event.clear()
+    if module_number == 1:
+        thread = threading.Thread(target=run_face_recognition, args=(cap, lock, stop_event))
+    elif module_number == 2:
+        thread = threading.Thread(target=run_object_detection, args=(cap, lock, stop_event))
+    elif module_number == 3:
+        thread = threading.Thread(target=run_depth_sense, args=(cap, lock, stop_event))
+    elif module_number == 4:
+        thread = threading.Thread(target=run_ocr, args=(cap, lock, stop_event))
+    else:
+        print("Invalid module number.")
+        return
 
-        # Start the new thread
-        self.current_thread.start()
+    active_threads = [thread]
+    thread.start()
