@@ -5,19 +5,26 @@ from face_recognition.face_recognition import recognize_faces
 from object_detection.object_detection import detect_objects
 from depth_sense.depth_sense import sense_depth
 from ocr.ocr import perform_ocr
+from speaker.tts import AudioHandler
 
 active_threads = []
+audio_handler = AudioHandler()
 
 def run_face_recognition(cap, lock, stop_event):
+    audio_handler.add_audio_task("Starting-Facial-Recognition-Mode")  # Example audio file
     recognize_faces(cap, lock, stop_event)
+    # audio_handler.add_audio_task("face_recognition_complete.wav")  # Example audio file
 
 def run_object_detection(cap, lock, stop_event):
-    detect_objects(cap, lock, stop_event)
+    audio_handler.add_audio_task("Starting-Object-Detection-Mode")  # Example audio file
+    detect_objects(cap, lock, stop_event, audio_handler)
 
 def run_depth_sense(cap, lock, stop_event):
+    audio_handler.add_audio_task("Starting-Depth-Sense-Mode")  # Example audio file
     sense_depth(cap, lock, stop_event)
 
 def run_ocr(cap, lock, stop_event):
+    audio_handler.add_audio_task("Starting-Oh-See-are-Mode")  # Example audio file
     perform_ocr(cap, lock, stop_event)
 
 def switch_module(module_number, cap, lock, stop_event):

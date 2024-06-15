@@ -5,7 +5,8 @@ import cv2
 import torch
 from ultralytics import YOLOv10
 import os
-
+from collections import defaultdict
+from datetime import datetime, timedelta
 def load_model():
     model_path = 'yolov10n.pt'
     if not os.path.exists(model_path):
@@ -31,9 +32,12 @@ COCO_CLASSES = [
 # Map these class names to the model
 model_class_names = {i: name for i, name in enumerate(COCO_CLASSES)}
 
-def detect_objects(cap, lock, stop_event):
+def detect_objects(cap, lock, stop_event, audio_handler, threshold=5, interval=5):
     window_name = "Object Detection"
     cv2.namedWindow(window_name)
+    object_positions = defaultdict(list)
+    start_time = datetime.now()
+
     while not stop_event.is_set():
         with lock:
             ret, image = cap.read()
@@ -45,14 +49,37 @@ def detect_objects(cap, lock, stop_event):
 
         # Extract bounding boxes and labels
         boxes = results[0].boxes  # Assuming results[0] is the first (and only) result
-        # Draw bounding boxes and labels on the image
+        detected_objects = []
         for box in boxes:
             x1, y1, x2, y2 = map(int, box.xyxy[0])
             conf = box.conf[0].item()
             cls = int(box.cls[0].item())
             label = f"{model_class_names.get(cls, 'Unknown')} {conf:.2f}"
+            detected_objects.append((model_class_names.get(cls, 'Unknown'), (x1 + x2) / 2))  # Store object name and its horizontal position
             cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+        # Update the object positions
+        for obj_name, x_pos in detected_objects:
+            object_positions[obj_name].append(x_pos)
+
+        # Check if the interval has passed
+        current_time = datetime.now()
+        if (current_time - start_time).seconds >= interval:
+            # Calculate the average position for each object
+            avg_positions = {obj: sum(positions) / len(positions) for obj, positions in object_positions.items()}
+
+            # Sort the objects by their average horizontal position
+            sorted_objects = sorted(avg_positions.items(), key=lambda x: x[1])
+
+            # Trigger audio if the count of any object exceeds the threshold
+            for obj, _ in sorted_objects:
+                if len(object_positions[obj]) >= threshold:
+                    audio_handler.add_audio_task(f"objects/{obj}")
+
+            # Reset the object positions and start time
+            object_positions.clear()
+            start_time = current_time
 
         # Display the resulting frame
         if image is not None:

@@ -2,7 +2,8 @@
 
 import cv2
 import threading
-from switcher.switcher import switch_module
+from switcher.switcher import switch_module, audio_handler
+from speaker.tts import start_audio_thread
 
 def main():
     # Initialize the camera
@@ -13,6 +14,9 @@ def main():
 
     lock = threading.Lock()
     stop_event = threading.Event()
+    audio_handler.add_audio_task("Starting-Aurasense")
+    # Start the audio thread
+    audio_thread = start_audio_thread(audio_handler)
 
     try:
         while True:
@@ -22,6 +26,7 @@ def main():
                 if module_number == 0:
                     print("Exiting...")
                     stop_event.set()
+                    audio_handler.stop()
                     break
 
                 switch_module(module_number, cap, lock, stop_event)
@@ -31,6 +36,7 @@ def main():
     finally:
         cap.release()
         cv2.destroyAllWindows()
+        audio_thread.join()
 
 if __name__ == "__main__":
     main()
