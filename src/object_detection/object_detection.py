@@ -11,7 +11,7 @@ def load_model():
     model_path = 'yolov10n.pt'
     if not os.path.exists(model_path):
         print("Downloading YOLOv10 model weights...")
-        torch.hub.download_url_to_file('https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov10n.pt', model_path)
+        torch.hub.download_url_to_file('https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov10b.pt', model_path)
     model = YOLOv10(model_path)
     return model
 
@@ -32,7 +32,7 @@ COCO_CLASSES = [
 # Map these class names to the model
 model_class_names = {i: name for i, name in enumerate(COCO_CLASSES)}
 
-def detect_objects(cap, lock, stop_event, audio_handler, threshold=5, interval=5):
+def detect_objects(cap, lock, stop_event, audio_handler, threshold=1, interval=5):
     window_name = "Object Detection"
     cv2.namedWindow(window_name)
     object_positions = defaultdict(list)
@@ -87,6 +87,22 @@ def detect_objects(cap, lock, stop_event, audio_handler, threshold=5, interval=5
         if cv2.waitKey(1) & 0xFF == ord('q'):
             stop_event.set()
             break
-        time.sleep(0.01)  # Simulate some processing time
     cv2.destroyWindow(window_name)
     print("Object Detection Stopped.")
+
+def image_captioning(cap, lock, stop_event, audio_handler):
+    window_name = "Image Captioning"
+    cv2.namedWindow(window_name)
+    while not stop_event.is_set():
+        with lock:
+            ret, image = cap.read()
+            if not ret:
+                break
+        if image is not None:
+            cv2.imshow(window_name, image)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            stop_event.set()
+            break
+        time.sleep(0.2)  # Simulate some processing time
+    cv2.destroyWindow(window_name)
+    print("Image Captioning Stopped.")
