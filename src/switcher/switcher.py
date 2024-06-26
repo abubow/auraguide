@@ -3,7 +3,7 @@
 import threading
 import gc
 import time
-from face_recognition.face_recognition import recognize_faces, store_unknown_faces
+from face_recog.face_recog import recognize_faces, store_unknown_faces
 from object_detection.object_detection import detect_objects, image_captioning
 from depth_sense.depth_sense import sense_depth
 from ocr.ocr import perform_ocr

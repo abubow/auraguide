@@ -1,4 +1,4 @@
-# src/audio_handler/audio_handler.py
+# src/speaker/tts.py
 
 import threading
 import queue
