@@ -3,14 +3,14 @@
 import threading
 import queue
 import time
-import pygame
 import os
+from pydub import AudioSegment
+from pydub import playback as sa
 
 class AudioHandler:
     def __init__(self):
         self.audio_queue = queue.Queue()
         self.stop_event = threading.Event()
-        pygame.mixer.init()
 
     def add_audio_task(self, audio_file):
         self.audio_queue.put(audio_file)
@@ -20,15 +20,13 @@ class AudioHandler:
             try:
                 audio_file = self.audio_queue.get(timeout=1)  # wait for 1 second
                 # check if file exists
-                path = "src/data/audios/"+audio_file+".wav"
+                path = "src/data/audios/" + audio_file + ".wav"
                 if os.path.exists(path):
-                    pygame.mixer.music.load(path)
-                    pygame.mixer.music.play()
+                    audio_segment = AudioSegment.from_wav(path)
+                    sa.play(audio_segment)
                 else:
                     print(os.listdir("../"))
                     print(path, " not found.")
-                while pygame.mixer.music.get_busy():
-                    time.sleep(0.1)
             except queue.Empty:
                 continue
 

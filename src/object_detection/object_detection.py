@@ -8,7 +8,7 @@ import os
 from collections import defaultdict
 from datetime import datetime, timedelta
 def load_model():
-    model_path = 'yolov10n.pt'
+    model_path = 'yolov10b.pt'
     if not os.path.exists(model_path):
         print("Downloading YOLOv10 model weights...")
         torch.hub.download_url_to_file('https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov10b.pt', model_path)
@@ -32,7 +32,7 @@ COCO_CLASSES = [
 # Map these class names to the model
 model_class_names = {i: name for i, name in enumerate(COCO_CLASSES)}
 
-def detect_objects(cap, lock, stop_event, audio_handler, threshold=1, interval=5):
+def detect_objects(cap, lock, stop_event, audio_handler, threshold=4, interval=5):
     window_name = "Object Detection"
     cv2.namedWindow(window_name)
     object_positions = defaultdict(list)

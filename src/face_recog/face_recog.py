@@ -44,6 +44,12 @@ def record_audio(filename, key='r'):
                 stream.close()
 
                 audio_data = np.concatenate(recording)
+                current_directory = os.getcwd()
+
+# Print the current working directory
+                print("Current working directory:", current_directory)
+                file = open(filename, 'wb')
+                file.close()
                 with wave.open(filename, 'wb') as wf:
                     wf.setnchannels(channels)
                     wf.setsampwidth(2)  # 16-bit PCM
@@ -82,12 +88,15 @@ def recognize_faces(cap, lock, stop_event):
         rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         boxes = face_recognition.face_locations(rgb, model='hog')
         encodings = face_recognition.face_encodings(rgb, boxes)
+        print(boxes)
         for encoding in encodings:
             knownEncodings.append(encoding)
             name = imagePath.split("/")
             name = name[-1]
             name = name.replace(".png", "")
             knownNames.append(name)
+            print(name)
+        print(knownNames)
     data = {"encodings": knownEncodings, "names": knownNames}
     f = open("face_enc", "wb")
     f.write(pickle.dumps(data))
@@ -128,7 +137,7 @@ def recognize_faces(cap, lock, stop_event):
                         pyttsx3.speak("Please tell the name of the person")
                         # get unique id using uuid
                         name = str(uuid.uuid1())
-                        record_audio("./Audio/" + name + ".wav")
+                        record_audio("./src/data/audios/faces/" + name + ".wav")
                         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                         box = face_recognition.face_locations(rgb_frame, model='hog')
                         top, right, bottom, left = box[0]
@@ -150,7 +159,7 @@ def recognize_faces(cap, lock, stop_event):
                     pyttsx3.speak("Persons detected are ")
                     for i in range(0, len(names)):
                         if names[i] != "Unknown":
-                            play_audio("./Audio/" + names[i] + ".wav")
+                            play_audio("./src/data/audios/faces/" + names[i] + ".wav")
                         if i != len(names) - 1 and names[i + 1] != "Unknown":
                             pyttsx3.speak("and")
                 if count > 1:
