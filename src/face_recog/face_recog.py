@@ -1,4 +1,4 @@
-# src/face_recognition/face_recognition.py
+# src/face_recog/face_recog.py
 
 import cv2
 import os

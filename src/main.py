@@ -14,7 +14,7 @@ def main():
     global cap, lock, stop_event, current_mode, modes
 
     # Initialize the camera
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Error: Could not open camera.")
         return
@@ -29,21 +29,23 @@ def main():
         while True:
             if keyboard.is_pressed('enter'):
                 current_mode = (current_mode + 1) % len(modes)
-                print(f'Switching to mode {current_mode + 1}')
+                print(f'Switching to mode {modes[current_mode]}')
                 switch_module(modes[current_mode], cap, lock, stop_event)
                 time.sleep(0.1)  # Add a short delay
             elif keyboard.is_pressed('tab'):
-                current_mode = (current_mode - 1) % len(modes)
-                print(f'Switching to mode {current_mode + 1}')
+                current_mode = (current_mode - 1 + len(modes)) % len(modes)
+                print(f'Switching to mode {modes[current_mode]}')
                 switch_module(modes[current_mode], cap, lock, stop_event)
                 time.sleep(0.1)  # Add a short delay
             elif keyboard.is_pressed('page up'):
-                if current_mode in [1, 2]:  # Face Recognition and Object Detection modes have sub-modes
-                    switch_sub_mode(1, current_mode, cap, lock, stop_event)
+                print("Submode + ")
+                if modes[current_mode] in [1, 2]:  # Face Recognition and Object Detection modes have sub-modes
+                    switch_sub_mode(1, modes[current_mode], cap, lock, stop_event)
                     time.sleep(0.1)  # Add a short delay
             elif keyboard.is_pressed('page down'):
-                if current_mode in [1, 2]:  # Face Recognition and Object Detection modes have sub-modes
-                    switch_sub_mode(-1, current_mode, cap, lock, stop_event)
+                print("Submode - ")
+                if modes[current_mode] in [1, 2]:  # Face Recognition and Object Detection modes have sub-modes
+                    switch_sub_mode(-1, modes[current_mode], cap, lock, stop_event)
                     time.sleep(0.1)  # Add a short delay
             time.sleep(0.01)  # Short delay to reduce CPU usage
     except KeyboardInterrupt:

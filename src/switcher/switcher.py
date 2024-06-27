@@ -72,13 +72,26 @@ def switch_module(module_number, cap, lock, stop_event):
     thread.start()
 
 def switch_sub_mode(increment, current_mode, cap, lock, stop_event):
-    global current_sub_mode
-    current_sub_mode += increment
-    if current_mode == 1:
-        current_sub_mode %= len(face_recognition_modes)
-    elif current_mode == 2:
-        current_sub_mode %= len(object_detection_modes)
+    global current_sub_mode, active_threads
+    if current_mode in [1, 2]:  # Only update sub-mode for face recognition and object detection
+        current_sub_mode += increment
+        if current_mode == 1:
+            current_sub_mode %= len(face_recognition_modes)
+        elif current_mode == 2:
+            current_sub_mode %= len(object_detection_modes)
+        print(f"Switched to sub-mode {current_sub_mode} for mode {current_mode}")
     else:
         current_sub_mode = 0  # No sub-modes for other modes
-    print(f"Switched to sub-mode {current_sub_mode}")
-    switch_module(current_mode, cap, lock, stop_event)
+
+    # Restart the current mode to apply the sub-mode change
+    if current_mode in [1, 2]:  # Only restart the mode if it has sub-modes
+        stop_event.set()
+        for thread in active_threads:
+            thread.join()
+        stop_event.clear()
+        if current_mode == 1:
+            thread = threading.Thread(target=run_face_recognition, args=(cap, lock, stop_event))
+        elif current_mode == 2:
+            thread = threading.Thread(target=run_object_detection, args=(cap, lock, stop_event))
+        active_threads = [thread]
+        thread.start()
