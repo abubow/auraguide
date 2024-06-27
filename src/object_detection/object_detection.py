@@ -3,7 +3,7 @@
 import time
 import cv2
 import torch
-from ultralytics import YOLOv10
+from ultralytics import YOLO
 import os
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -12,7 +12,7 @@ def load_model():
     if not os.path.exists(model_path):
         print("Downloading YOLOv10 model weights...")
         torch.hub.download_url_to_file('https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov10b.pt', model_path)
-    model = YOLOv10(model_path)
+    model = YOLO(model_path)
     return model
 
 # Initialize the object detection model
