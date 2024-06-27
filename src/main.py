@@ -14,7 +14,7 @@ def main():
     global cap, lock, stop_event, current_mode, modes
 
     # Initialize the camera
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     if not cap.isOpened():
         print("Error: Could not open camera.")
         return
