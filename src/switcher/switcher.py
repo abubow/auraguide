@@ -1,5 +1,3 @@
-# src/switcher/switcher.py
-
 import threading
 import gc
 import time
@@ -19,23 +17,23 @@ face_recognition_modes = [recognize_faces, store_unknown_faces]
 # Define sub-modes for object detection
 object_detection_modes = [detect_objects, image_captioning]
 
-def run_face_recognition(cap, lock, stop_event):
+def run_face_recognition(cap, lock, stop_event, debug):
     mode = face_recognition_modes[current_sub_mode]
     audio_handler.add_audio_task("Starting-Facial-Recognition-Mode")
-    mode(cap, lock, stop_event)
+    mode(cap, lock, stop_event, debug)
 
-def run_object_detection(cap, lock, stop_event):
+def run_object_detection(cap, lock, stop_event, debug):
     mode = object_detection_modes[current_sub_mode]
     audio_handler.add_audio_task("Starting-Object-Detection-Mode")
-    mode(cap, lock, stop_event, audio_handler)
+    mode(cap, lock, stop_event, audio_handler, debug=debug)
 
-def run_depth_sense(cap, lock, stop_event):
+def run_depth_sense(cap, lock, stop_event, debug):
     audio_handler.add_audio_task("Starting-Depth-Sense-Mode")
-    sense_depth(cap, lock, stop_event)
+    sense_depth(cap, lock, stop_event, debug)
 
-def run_ocr(cap, lock, stop_event):
+def run_ocr(cap, lock, stop_event, debug):
     audio_handler.add_audio_task("Starting-Oh-See-are-Mode")
-    perform_ocr(cap, lock, stop_event)
+    perform_ocr(cap, lock, stop_event, debug)
 
 def run_sleep_mode(stop_event):
     audio_handler.add_audio_task("Entering-Sleep-Mode")
@@ -45,7 +43,7 @@ def run_sleep_mode(stop_event):
         time.sleep(10)
     audio_handler.add_audio_task("Exiting-Sleep-Mode")
 
-def switch_module(module_number, cap, lock, stop_event):
+def switch_module(module_number, cap, lock, stop_event, debug):
     global active_threads, current_sub_mode
     stop_event.set()
 
@@ -55,13 +53,13 @@ def switch_module(module_number, cap, lock, stop_event):
     stop_event.clear()
     current_sub_mode = 0  # Reset sub-mode when switching main modes
     if module_number == 1:
-        thread = threading.Thread(target=run_face_recognition, args=(cap, lock, stop_event))
+        thread = threading.Thread(target=run_face_recognition, args=(cap, lock, stop_event, debug))
     elif module_number == 2:
-        thread = threading.Thread(target=run_object_detection, args=(cap, lock, stop_event))
+        thread = threading.Thread(target=run_object_detection, args=(cap, lock, stop_event, debug))
     elif module_number == 3:
-        thread = threading.Thread(target=run_depth_sense, args=(cap, lock, stop_event))
+        thread = threading.Thread(target=run_depth_sense, args=(cap, lock, stop_event, debug))
     elif module_number == 4:
-        thread = threading.Thread(target=run_ocr, args=(cap, lock, stop_event))
+        thread = threading.Thread(target=run_ocr, args=(cap, lock, stop_event, debug))
     elif module_number == 5:
         thread = threading.Thread(target=run_sleep_mode, args=(stop_event,))
     else:
@@ -71,7 +69,7 @@ def switch_module(module_number, cap, lock, stop_event):
     active_threads = [thread]
     thread.start()
 
-def switch_sub_mode(increment, current_mode, cap, lock, stop_event):
+def switch_sub_mode(increment, current_mode, cap, lock, stop_event, debug):
     global current_sub_mode
     current_sub_mode += increment
     if current_mode == 1:
@@ -81,4 +79,4 @@ def switch_sub_mode(increment, current_mode, cap, lock, stop_event):
     else:
         current_sub_mode = 0  # No sub-modes for other modes
     print(f"Switched to sub-mode {current_sub_mode}")
-    switch_module(current_mode, cap, lock, stop_event)
+    switch_module(current_mode, cap, lock, stop_event, debug)

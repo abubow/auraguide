@@ -1,5 +1,3 @@
-# src/object_detection/object_detection.py
-
 import time
 import cv2
 import torch
@@ -7,6 +5,7 @@ from ultralytics import YOLO
 import os
 from collections import defaultdict
 from datetime import datetime, timedelta
+
 def load_model():
     model_path = 'yolov10s.pt'
     if not os.path.exists(model_path):
@@ -17,6 +16,7 @@ def load_model():
 
 # Initialize the object detection model
 model = load_model()
+print("Loaded yolo")
 COCO_CLASSES = [
     "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
     "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
@@ -32,9 +32,11 @@ COCO_CLASSES = [
 # Map these class names to the model
 model_class_names = {i: name for i, name in enumerate(COCO_CLASSES)}
 
-def detect_objects(cap, lock, stop_event, audio_handler, threshold=4, interval=5):
+def detect_objects(cap, lock, stop_event, audio_handler, threshold=4, interval=5, debug=False):
     window_name = "Object Detection"
-    cv2.namedWindow(window_name)
+    # if debug:
+    #     cv2.namedWindow(window_name)
+    
     object_positions = defaultdict(list)
     start_time = datetime.now()
 
@@ -56,8 +58,9 @@ def detect_objects(cap, lock, stop_event, audio_handler, threshold=4, interval=5
             cls = int(box.cls[0].item())
             label = f"{model_class_names.get(cls, 'Unknown')} {conf:.2f}"
             detected_objects.append((model_class_names.get(cls, 'Unknown'), (x1 + x2) / 2))  # Store object name and its horizontal position
-            cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            # if debug:
+            #     cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            #     cv2.putText(image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         # Update the object positions
         for obj_name, x_pos in detected_objects:
@@ -82,27 +85,39 @@ def detect_objects(cap, lock, stop_event, audio_handler, threshold=4, interval=5
             start_time = current_time
 
         # Display the resulting frame
-        if image is not None:
-            cv2.imshow(window_name, image)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            stop_event.set()
-            break
-    cv2.destroyWindow(window_name)
+        # if debug and image is not None:
+        #     cv2.imshow(window_name, image)
+        
+        # if debug and cv2.waitKey(1) & 0xFF == ord('q'):
+        #     stop_event.set()
+        #     break
+    
+    # if debug:
+    #     cv2.destroyWindow(window_name)
+    
     print("Object Detection Stopped.")
 
-def image_captioning(cap, lock, stop_event, audio_handler):
+def image_captioning(cap, lock, stop_event, audio_handler, debug=False):
     window_name = "Image Captioning"
-    cv2.namedWindow(window_name)
+    if debug:
+        cv2.namedWindow(window_name)
+    
     while not stop_event.is_set():
         with lock:
             ret, image = cap.read()
             if not ret:
                 break
-        if image is not None:
+        
+        if debug and image is not None:
             cv2.imshow(window_name, image)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        
+        if debug and cv2.waitKey(1) & 0xFF == ord('q'):
             stop_event.set()
             break
+        
         time.sleep(0.2)  # Simulate some processing time
-    cv2.destroyWindow(window_name)
+    
+    if debug:
+        cv2.destroyWindow(window_name)
+    
     print("Image Captioning Stopped.")

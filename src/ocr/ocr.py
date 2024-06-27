@@ -1,17 +1,21 @@
-# src/ocr/ocr.py
-
 import cv2
 from paddleocr import PaddleOCR, draw_ocr
 
 ocr = PaddleOCR(det_model_dir=None, rec_model_dir='PaddleOCR/ocr_rec/en_PP-OCRv3_rec', use_angle_cls=True, lang='en')
-def perform_ocr(cap, lock, stop_event):
-    while True:
-        ret, frame = cap.read()
-        cv2.imshow('OCR Video Feed', frame)
+print("Loaded OCR model")
+def perform_ocr(cap, lock, stop_event, debug=False):
+    # if debug:
+    #     cv2.namedWindow('OCR Video Feed')
 
-            # If frame is read correctly, ret is True
-        if not ret:
-            print("Error: Can't receive frame (stream end?). Exiting ...")
+    while not stop_event.is_set():
+        with lock:
+            ret, frame = cap.read()
+            if not ret:
+                print("Error: Can't receive frame (stream end?). Exiting ...")
+                break
+
+        # if debug:
+        #     cv2.imshow('OCR Video Feed', frame)
 
         # Perform OCR on the frame
         result = ocr.ocr(frame, cls=True)
@@ -23,5 +27,10 @@ def perform_ocr(cap, lock, stop_event):
                     for word_info in line:
                         word = word_info[1][0]
                         print(f"OCR Text: {word}")
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+
+    #     if debug and cv2.waitKey(1) & 0xFF == ord('q'):
+    #         stop_event.set()
+    #         break
+
+    # if debug:
+    #     cv2.destroyWindow('OCR Video Feed')

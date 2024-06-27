@@ -5,7 +5,7 @@ import queue
 import time
 import os
 from pydub import AudioSegment
-from pydub import playback as sa
+import simpleaudio as sa
 
 class AudioHandler:
     def __init__(self):
@@ -23,7 +23,13 @@ class AudioHandler:
                 path = "src/data/audios/" + audio_file + ".wav"
                 if os.path.exists(path):
                     audio_segment = AudioSegment.from_wav(path)
-                    sa.play(audio_segment)
+                    play_obj = sa.play_buffer(
+                        audio_segment.raw_data,
+                        num_channels=audio_segment.channels,
+                        bytes_per_sample=audio_segment.sample_width,
+                        sample_rate=audio_segment.frame_rate
+                    )
+                    play_obj.wait_done()  # Wait until playback is finished
                 else:
                     print(os.listdir("../"))
                     print(path, " not found.")
